@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>ParentEye – Çocuğunu Yakından Takip Et</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0D0F1A;
+  --card: #161829;
+  --card2: #1E2138;
+  --border: rgba(255,255,255,0.07);
+  --accent: #6EE7B7;
+  --accent2: #818CF8;
+  --accent3: #FB923C;
+  --accent4: #F472B6;
+  --text: #F1F5F9;
+  --muted: #64748B;
+  --radius: 20px;
+  --radius-sm: 12px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; }
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  max-width: 430px;
+  margin: 0 auto;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* ── SPLASH ── */
+#splash {
+  position: fixed; inset: 0; z-index: 999;
+  background: linear-gradient(145deg, #0D0F1A 0%, #131629 60%, #1a1f3a 100%);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 0;
+  padding: 40px 32px;
+}
+#splash.out { animation: splashOut 0.5s ease forwards; }
+@keyframes splashOut { to { opacity: 0; transform: scale(1.04); pointer-events: none; } }
+
+.splash-logo {
+  width: 88px; height: 88px; border-radius: 28px;
+  background: linear-gradient(135deg, #6EE7B7, #818CF8);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2.6rem;
+  box-shadow: 0 20px 60px rgba(110,231,183,0.3);
+  margin-bottom: 28px;
+  animation: logoPop 0.6s cubic-bezier(0.34,1.56,0.64,1);
+}
+@keyframes logoPop { from { transform: scale(0.5) rotate(-10deg); opacity: 0; } to { transform: none; opacity: 1; } }
+.splash-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 2.4rem; font-weight: 800;
+  background: linear-gradient(135deg, #6EE7B7 0%, #818CF8 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  margin-bottom: 8px; text-align: center;
+}
+.splash-sub { color: var(--muted); font-size: 0.95rem; text-align: center; line-height: 1.6; margin-bottom: 48px; }
+.splash-features { display: flex; flex-direction: column; gap: 14px; width: 100%; margin-bottom: 40px; }
+.splash-feat {
+  display: flex; align-items: center; gap: 14px;
+  background: var(--card); border-radius: var(--radius-sm);
+  padding: 14px 16px; border: 1px solid var(--border);
+  animation: featSlide 0.5s ease both;
+}
+.splash-feat:nth-child(2) { animation-delay: 0.1s; }
+.splash-feat:nth-child(3) { animation-delay: 0.2s; }
+@keyframes featSlide { from { opacity: 0; transform: translateX(-20px); } }
+.feat-icon { font-size: 1.6rem; flex-shrink: 0; }
+.feat-text { font-size: 0.88rem; font-weight: 600; color: var(--text); line-height: 1.4; }
+.feat-text span { color: var(--muted); font-weight: 500; display: block; font-size: 0.78rem; }
+.splash-btn {
+  width: 100%; padding: 18px;
+  background: linear-gradient(135deg, #6EE7B7, #818CF8);
+  border: none; border-radius: var(--radius);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.05rem; font-weight: 800; color: #0D0F1A;
+  cursor: pointer; letter-spacing: 0.3px;
+  box-shadow: 0 12px 40px rgba(110,231,183,0.3);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.splash-btn:hover { transform: translateY(-2px); box-shadow: 0 18px 50px rgba(110,231,183,0.4); }
+.splash-btn:active { transform: scale(0.98); }
+
+/* ── MAIN APP ── */
+#app { display: none; flex-direction: column; min-height: 100vh; padding-bottom: 80px; }
+#app.show { display: flex; animation: fadeUp 0.4s ease; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } }
+
+/* ── TOPBAR ── */
+.topbar {
+  padding: 20px 20px 0;
+  display: flex; align-items: flex-start; justify-content: space-between;
+  position: sticky; top: 0; z-index: 50;
+  background: linear-gradient(180deg, var(--bg) 80%, transparent);
+  padding-bottom: 8px;
+}
+.topbar-left .greeting { font-size: 0.8rem; color: var(--muted); font-weight: 600; }
+.topbar-left .name {
+  font-family: 'Syne', sans-serif; font-size: 1.5rem; font-weight: 800;
+  background: linear-gradient(135deg, #fff, #94a3b8);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.notif-btn {
+  position: relative; width: 42px; height: 42px; border-radius: 50%;
+  background: var(--card); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.2rem; cursor: pointer; transition: background 0.2s;
+  flex-shrink: 0;
+}
+.notif-btn:hover { background: var(--card2); }
+.notif-dot {
+  position: absolute; top: 8px; right: 8px;
+  width: 9px; height: 9px; border-radius: 50%;
+  background: var(--accent3); border: 2px solid var(--bg);
+  animation: blink 2s infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+/* ── CHILDREN ROW ── */
+.children-scroll {
+  display: flex; gap: 12px; padding: 20px 20px 0;
+  overflow-x: auto; scrollbar-width: none;
+}
+.children-scroll::-webkit-scrollbar { display: none; }
+.child-pill {
+  flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 6px;
+  cursor: pointer;
+}
+.child-avatar {
+  width: 58px; height: 58px; border-radius: 20px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.8rem;
+  border: 2.5px solid transparent;
+  transition: all 0.2s;
+  position: relative;
+}
+.child-pill.active .child-avatar {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px rgba(110,231,183,0.15);
+}
+.child-status {
+  position: absolute; bottom: -2px; right: -2px;
+  width: 14px; height: 14px; border-radius: 50%;
+  background: #22C55E; border: 2px solid var(--bg);
+}
+.child-status.idle { background: var(--muted); }
+.child-name { font-size: 0.72rem; font-weight: 700; color: var(--muted); }
+.child-pill.active .child-name { color: var(--accent); }
+.add-child {
+  flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 6px;
+  cursor: pointer;
+}
+.add-child-circle {
+  width: 58px; height: 58px; border-radius: 20px;
+  border: 2px dashed var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.4rem; color: var(--muted);
+  transition: all 0.2s;
+}
+.add-child:hover .add-child-circle { border-color: var(--accent); color: var(--accent); }
+.add-child-label { font-size: 0.72rem; font-weight: 700; color: var(--muted); }
+
+/* ── LIVE CARD ── */
+.section-pad { padding: 20px 20px 0; }
+.live-card {
+  background: linear-gradient(135deg, #1a2a4a 0%, #1E2138 100%);
+  border-radius: var(--radius);
+  padding: 20px;
+  border: 1px solid rgba(110,231,183,0.15);
+  position: relative; overflow: hidden;
+}
+.live-card::before {
+  content: ''; position: absolute; top: -40px; right: -40px;
+  width: 150px; height: 150px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(110,231,183,0.1) 0%, transparent 70%);
+}
+.live-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: rgba(110,231,183,0.15); border-radius: 50px;
+  padding: 4px 10px; font-size: 0.72rem; font-weight: 800;
+  color: var(--accent); margin-bottom: 12px;
+}
+.live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); animation: blink 1s infinite; }
+.live-activity { font-size: 1.1rem; font-weight: 800; margin-bottom: 4px; }
+.live-sub { font-size: 0.8rem; color: var(--muted); margin-bottom: 16px; }
+.live-stats { display: flex; gap: 12px; }
+.live-stat {
+  flex: 1; background: rgba(255,255,255,0.05); border-radius: var(--radius-sm);
+  padding: 12px; text-align: center;
+}
+.live-stat-val { font-size: 1.3rem; font-weight: 900; color: var(--accent); }
+.live-stat-lbl { font-size: 0.68rem; color: var(--muted); font-weight: 600; margin-top: 2px; }
+
+/* ── SECTION TITLE ── */
+.sec-title {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 14px;
+}
+.sec-title h2 { font-size: 1rem; font-weight: 800; }
+.sec-title a { font-size: 0.78rem; font-weight: 700; color: var(--accent2); cursor: pointer; }
+
+/* ── TODAY PROGRESS ── */
+.progress-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.prog-card {
+  background: var(--card); border-radius: var(--radius);
+  padding: 16px; border: 1px solid var(--border);
+  transition: transform 0.2s;
+  cursor: pointer;
+}
+.prog-card:hover { transform: translateY(-3px); }
+.prog-icon { font-size: 1.6rem; margin-bottom: 8px; }
+.prog-label { font-size: 0.78rem; font-weight: 700; color: var(--muted); margin-bottom: 6px; }
+.prog-val { font-size: 1.4rem; font-weight: 900; margin-bottom: 10px; }
+.prog-bar-bg { height: 6px; background: rgba(255,255,255,0.07); border-radius: 3px; overflow: hidden; }
+.prog-bar { height: 100%; border-radius: 3px; transition: width 1s cubic-bezier(0.4,0,0.2,1); }
+.prog-change { font-size: 0.7rem; font-weight: 700; margin-top: 6px; }
+.prog-change.up { color: #22C55E; }
+.prog-change.down { color: #F87171; }
+
+/* ── WEAK AREAS ── */
+.weak-list { display: flex; flex-direction: column; gap: 10px; }
+.weak-item {
+  background: var(--card); border-radius: var(--radius-sm);
+  padding: 14px 16px; border: 1px solid var(--border);
+  display: flex; align-items: center; gap: 12px;
+  cursor: pointer; transition: background 0.2s;
+}
+.weak-item:hover { background: var(--card2); }
+.weak-emoji { font-size: 1.5rem; flex-shrink: 0; }
+.weak-info { flex: 1; }
+.weak-name { font-size: 0.9rem; font-weight: 700; margin-bottom: 4px; }
+.weak-detail { font-size: 0.75rem; color: var(--muted); }
+.weak-score {
+  font-size: 0.8rem; font-weight: 800; padding: 4px 10px;
+  border-radius: 50px;
+}
+.weak-score.red { background: rgba(248,113,113,0.15); color: #F87171; }
+.weak-score.yellow { background: rgba(251,191,36,0.15); color: #FBBF24; }
+.weak-score.green { background: rgba(34,197,94,0.15); color: #22C55E; }
+
+/* ── NOTIFICATIONS ── */
+.notif-list { display: flex; flex-direction: column; gap: 10px; }
+.notif-item {
+  background: var(--card); border-radius: var(--radius-sm);
+  padding: 14px 16px; border: 1px solid var(--border);
+  display: flex; gap: 12px; align-items: flex-start;
+  position: relative; overflow: hidden;
+}
+.notif-item.unread::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 3px; border-radius: 0 2px 2px 0;
+}
+.notif-item.unread.green::before { background: var(--accent); }
+.notif-item.unread.orange::before { background: var(--accent3); }
+.notif-item.unread.purple::before { background: var(--accent2); }
+.notif-icon-wrap { font-size: 1.4rem; flex-shrink: 0; }
+.notif-content { flex: 1; }
+.notif-title { font-size: 0.88rem; font-weight: 700; margin-bottom: 3px; }
+.notif-body { font-size: 0.76rem; color: var(--muted); line-height: 1.4; }
+.notif-time { font-size: 0.68rem; color: var(--muted); margin-top: 6px; }
+.notif-action {
+  background: var(--card2); border: none; border-radius: 8px;
+  padding: 5px 10px; font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 0.72rem; font-weight: 700; color: var(--text);
+  cursor: pointer; margin-top: 8px; display: inline-block;
+  transition: background 0.2s;
+}
+.notif-action:hover { background: var(--accent); color: #0D0F1A; }
+
+/* ── WEEKLY CHART ── */
+.week-chart-wrap {
+  background: var(--card); border-radius: var(--radius);
+  padding: 18px; border: 1px solid var(--border);
+}
+.week-bars { display: flex; align-items: flex-end; gap: 8px; height: 80px; margin-bottom: 8px; }
+.week-bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.week-bar-bg { width: 100%; flex: 1; background: rgba(255,255,255,0.05); border-radius: 6px; overflow: hidden; position: relative; display: flex; align-items: flex-end; }
+.week-bar-fill { width: 100%; border-radius: 6px; transition: height 1s cubic-bezier(0.4,0,0.2,1); }
+.week-bar-day { font-size: 0.65rem; font-weight: 700; color: var(--muted); }
+.week-legend { display: flex; gap: 16px; justify-content: center; margin-top: 10px; }
+.legend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.72rem; color: var(--muted); font-weight: 600; }
+
+/* ── GOALS ── */
+.goals-list { display: flex; flex-direction: column; gap: 10px; }
+.goal-item {
+  background: var(--card); border-radius: var(--radius-sm);
+  padding: 14px 16px; border: 1px solid var(--border);
+}
+.goal-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.goal-name { font-size: 0.88rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.goal-pct { font-size: 0.8rem; font-weight: 800; }
+.goal-bar-bg { height: 8px; background: rgba(255,255,255,0.07); border-radius: 4px; overflow: hidden; }
+.goal-bar { height: 100%; border-radius: 4px; }
+.goal-sub { font-size: 0.72rem; color: var(--muted); margin-top: 6px; }
+
+/* ── BOTTOM NAV ── */
+.bottom-nav {
+  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 430px;
+  background: rgba(22, 24, 41, 0.95);
+  backdrop-filter: blur(20px);
+  border-top: 1px solid var(--border);
+  display: flex; padding: 10px 0 20px; z-index: 100;
+}
+.nav-btn {
+  flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px;
+  background: none; border: none; cursor: pointer; padding: 4px;
+  transition: transform 0.2s;
+}
+.nav-btn:hover { transform: translateY(-3px); }
+.nav-icon { font-size: 1.4rem; transition: filter 0.2s; }
+.nav-label { font-size: 0.6rem; font-weight: 800; color: var(--muted); transition: color 0.2s; }
+.nav-btn.active .nav-label { color: var(--accent); }
+.nav-btn.active .nav-icon { filter: drop-shadow(0 0 8px rgba(110,231,183,0.6)); }
+
+/* ── TABS ── */
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* ── PANEL: ÇOCUK DETAY ── */
+.child-detail-header {
+  background: var(--card); margin: 20px; border-radius: var(--radius);
+  padding: 20px; border: 1px solid var(--border);
+  display: flex; align-items: center; gap: 16px;
+}
+.child-detail-avatar { font-size: 3rem; }
+.child-detail-info { flex: 1; }
+.child-detail-name { font-size: 1.2rem; font-weight: 800; margin-bottom: 2px; }
+.child-detail-age { font-size: 0.8rem; color: var(--muted); font-weight: 600; }
+.child-detail-streak {
+  display: flex; align-items: center; gap: 6px;
+  background: rgba(251,146,60,0.15); border-radius: 50px;
+  padding: 6px 12px; font-size: 0.8rem; font-weight: 800; color: var(--accent3);
+  margin-top: 8px; width: fit-content;
+}
+
+/* ── REPORT MODAL ── */
+.modal-overlay {
+  display: none; position: fixed; inset: 0; z-index: 200;
+  background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+  align-items: flex-end; justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal-box {
+  background: var(--card); width: 100%; max-width: 430px;
+  border-radius: 28px 28px 0 0; padding: 24px 24px 48px;
+  animation: slideUp 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  max-height: 85vh; overflow-y: auto;
+}
+@keyframes slideUp { from { transform: translateY(100%); } }
+.modal-handle { width: 40px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 20px; }
+.modal-title { font-family: 'Syne', sans-serif; font-size: 1.3rem; font-weight: 800; margin-bottom: 20px; }
+.modal-close { float: right; background: none; border: none; color: var(--muted); font-size: 1.4rem; cursor: pointer; margin-top: -4px; }
+.report-row { display: flex; align-items: center; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--border); }
+.report-row:last-child { border-bottom: none; }
+.report-icon { font-size: 1.4rem; }
+.report-info { flex: 1; }
+.report-label { font-size: 0.82rem; font-weight: 700; }
+.report-val { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+.report-badge { font-size: 0.78rem; font-weight: 800; padding: 4px 10px; border-radius: 50px; }
+.rb-green { background: rgba(34,197,94,0.15); color: #22C55E; }
+.rb-orange { background: rgba(251,146,60,0.15); color: var(--accent3); }
+.rb-purple { background: rgba(129,140,248,0.15); color: var(--accent2); }
+
+/* ── SETTINGS ── */
+.settings-section { padding: 0 20px 16px; }
+.settings-title { font-size: 0.72rem; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; margin-top: 20px; }
+.setting-row {
+  background: var(--card); border-radius: var(--radius-sm);
+  padding: 16px; border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 8px; cursor: pointer; transition: background 0.2s;
+}
+.setting-row:hover { background: var(--card2); }
+.setting-left { display: flex; align-items: center; gap: 12px; }
+.setting-icon { font-size: 1.3rem; }
+.setting-name { font-size: 0.9rem; font-weight: 700; }
+.setting-sub { font-size: 0.75rem; color: var(--muted); margin-top: 1px; }
+.toggle {
+  width: 44px; height: 24px; border-radius: 12px; background: var(--muted);
+  position: relative; cursor: pointer; transition: background 0.3s;
+  flex-shrink: 0;
+}
+.toggle.on { background: var(--accent); }
+.toggle::after {
+  content: ''; position: absolute; top: 3px; left: 3px;
+  width: 18px; height: 18px; border-radius: 50%; background: #fff;
+  transition: left 0.3s;
+}
+.toggle.on::after { left: 23px; }
+.setting-arrow { color: var(--muted); font-size: 1rem; }
+
+/* ── WHATSAPP BTN ── */
+.wa-btn {
+  margin: 20px; padding: 18px;
+  background: linear-gradient(135deg, #25D366, #128C7E);
+  border: none; border-radius: var(--radius);
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 1rem; font-weight: 800; color: #fff;
+  cursor: pointer; box-shadow: 0 8px 32px rgba(37,211,102,0.3);
+  transition: transform 0.2s, box-shadow 0.2s; width: calc(100% - 40px);
+}
+.wa-btn:hover { transform: translateY(-2px); box-shadow: 0 14px 40px rgba(37,211,102,0.4); }
+
+/* ── TOAST ── */
+.toast {
+  position: fixed; bottom: 95px; left: 50%; transform: translateX(-50%);
+  background: rgba(30, 33, 56, 0.95); backdrop-filter: blur(12px);
+  color: var(--text); border-radius: 50px; padding: 12px 24px;
+  font-size: 0.85rem; font-weight: 700; z-index: 500;
+  border: 1px solid var(--border);
+  opacity: 0; pointer-events: none; transition: opacity 0.3s; white-space: nowrap;
+}
+.toast.show { opacity: 1; }
+
+/* util */
+.mt8 { margin-top: 8px; }
+.chip {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 8px; border-radius: 50px; font-size: 0.7rem; font-weight: 700;
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════
+     SPLASH SCREEN
+══════════════════════════════ -->
+<div id="splash">
+  <div class="splash-logo">👁️</div>
+  <div class="splash-title">ParentEye</div>
+  <p class="splash-sub">Çocuğunun öğrenme yolculuğunu<br>gerçek zamanlı takip et</p>
+
+  <div class="splash-features">
+    <div class="splash-feat">
+      <span class="feat-icon">📊</span>
+      <div class="feat-text">Anlık öğrenme analizi
+        <span>Ne öğrendi, nerede takıldı — canlı verilerle</span>
+      </div>
+    </div>
+    <div class="splash-feat">
+      <span class="feat-icon">🔔</span>
+      <div class="feat-text">Akıllı bildirimler
+        <span>Başarı, zorluk ve ekran süresi uyarıları</span>
+      </div>
+    </div>
+    <div class="splash-feat">
+      <span class="feat-icon">💬</span>
+      <div class="feat-text">WhatsApp günlük özeti
+        <span>Her gün akşam telefonuna rapor gelir</span>
+      </div>
+    </div>
+  </div>
+
+  <button class="splash-btn" onclick="startApp()">🚀 Hemen Başla</button>
+</div>
+
+<!-- ══════════════════════════════
+     ANA UYGULAMA
+══════════════════════════════ -->
+<div id="app">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="greeting">Günaydın,</div>
+      <div class="name">Ayşe Hanım 👋</div>
+    </div>
+    <button class="notif-btn" onclick="openModal('notifModal')">
+      🔔
+      <span class="notif-dot"></span>
+    </button>
+  </div>
+
+  <!-- TAB: PANEL -->
+  <div class="tab-content active" id="tab-panel">
+
+    <!-- Çocuk Seçimi -->
+    <div class="children-scroll">
+      <div class="child-pill active" onclick="selectChild(this, 'Ahmet')">
+        <div class="child-avatar" style="background:linear-gradient(135deg,#6EE7B7,#3B82F6)">
+          🧒
+          <span class="child-status"></span>
+        </div>
+        <span class="child-name">Ahmet</span>
+      </div>
+      <div class="child-pill" onclick="selectChild(this, 'Zeynep')">
+        <div class="child-avatar" style="background:linear-gradient(135deg,#F472B6,#818CF8)">
+          👧
+          <span class="child-status idle"></span>
+        </div>
+        <span class="child-name">Zeynep</span>
+      </div>
+      <div class="add-child">
+        <div class="add-child-circle">＋</div>
+        <span class="add-child-label">Ekle</span>
+      </div>
+    </div>
+
+    <!-- CANLI -->
+    <div class="section-pad">
+      <div class="live-card">
+        <div class="live-badge"><span class="live-dot"></span> CANLI</div>
+        <div class="live-activity">🔤 Alfabe Egzersizi yapıyor</div>
+        <div class="live-sub">MiniAkıl Eğitim Uygulaması · Şu an aktif</div>
+        <div class="live-stats">
+          <div class="live-stat">
+            <div class="live-stat-val">23dk</div>
+            <div class="live-stat-lbl">Bugün</div>
+          </div>
+          <div class="live-stat">
+            <div class="live-stat-val">12/15</div>
+            <div class="live-stat-lbl">Soru</div>
+          </div>
+          <div class="live-stat">
+            <div class="live-stat-val">%80</div>
+            <div class="live-stat-lbl">Başarı</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BUGÜNÜN İLERLEMESİ -->
+    <div class="section-pad">
+      <div class="sec-title">
+        <h2>📅 Bugünün İlerlemesi</h2>
+        <a onclick="openModal('reportModal')">Tümünü gör →</a>
+      </div>
+      <div class="progress-grid">
+        <div class="prog-card" onclick="showToast('Alfabe detayı açılıyor...')">
+          <div class="prog-icon">🔤</div>
+          <div class="prog-label">ALFABE</div>
+          <div class="prog-val" style="color:#6EE7B7">21/29</div>
+          <div class="prog-bar-bg"><div class="prog-bar" style="width:72%;background:linear-gradient(90deg,#6EE7B7,#3B82F6)"></div></div>
+          <div class="prog-change up">↑ Dünden +3 harf</div>
+        </div>
+        <div class="prog-card" onclick="showToast('Sayılar detayı açılıyor...')">
+          <div class="prog-icon">🔢</div>
+          <div class="prog-label">SAYILAR</div>
+          <div class="prog-val" style="color:#818CF8">8/10</div>
+          <div class="prog-bar-bg"><div class="prog-bar" style="width:80%;background:linear-gradient(90deg,#818CF8,#C084FC)"></div></div>
+          <div class="prog-change up">↑ Çok iyi gidiyor!</div>
+        </div>
+        <div class="prog-card" onclick="showToast('Renkler detayı açılıyor...')">
+          <div class="prog-icon">🎨</div>
+          <div class="prog-label">RENKLER</div>
+          <div class="prog-val" style="color:#FB923C">5/8</div>
+          <div class="prog-bar-bg"><div class="prog-bar" style="width:62%;background:linear-gradient(90deg,#FB923C,#F87171)"></div></div>
+          <div class="prog-change down">↓ Dün daha iyiydi</div>
+        </div>
+        <div class="prog-card" onclick="showToast('Hayvanlar detayı açılıyor...')">
+          <div class="prog-icon">🐾</div>
+          <div class="prog-label">HAYVANLAR</div>
+          <div class="prog-val" style="color:#F472B6">10/12</div>
+          <div class="prog-bar-bg"><div class="prog-bar" style="width:83%;background:linear-gradient(90deg,#F472B6,#FB923C)"></div></div>
+          <div class="prog-change up">↑ Harika ilerleme!</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ZORLUK ALANLARI -->
+    <div class="section-pad" style="padding-bottom:20px">
+      <div class="sec-title">
+        <h2>⚠️ Zorluk Çekilen Konular</h2>
+        <a onclick="showToast('Detaylı analiz hazırlanıyor...')">Analiz →</a>
+      </div>
+      <div class="weak-list">
+        <div class="weak-item" onclick="openModal('reportModal')">
+          <span class="weak-emoji">🔡</span>
+          <div class="weak-info">
+            <div class="weak-name">Ğ, Ü, Ş Harfleri</div>
+            <div class="weak-detail">Son 3 günde 8 kez hata yaptı</div>
+          </div>
+          <span class="weak-score red">Zayıf</span>
+        </div>
+        <div class="weak-item" onclick="openModal('reportModal')">
+          <span class="weak-emoji">🎨</span>
+          <div class="weak-info">
+            <div class="weak-name">Turuncu & Mor Renk</div>
+            <div class="weak-detail">Karıştırıyor, 5 kez hata</div>
+          </div>
+          <span class="weak-score yellow">Gelişiyor</span>
+        </div>
+        <div class="weak-item" onclick="openModal('reportModal')">
+          <span class="weak-emoji">➗</span>
+          <div class="weak-info">
+            <div class="weak-name">8 ve 9 Sayıları</div>
+            <div class="weak-detail">Sıralama hatası yapıyor</div>
+          </div>
+          <span class="weak-score yellow">Gelişiyor</span>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /tab-panel -->
+
+  <!-- TAB: ANALİZ -->
+  <div class="tab-content" id="tab-analiz">
+    <div class="section-pad" style="padding-top:20px">
+      <div class="sec-title"><h2>📈 Haftalık Aktivite</h2></div>
+      <div class="week-chart-wrap">
+        <div class="week-bars" id="weekBars"></div>
+        <div class="week-legend">
+          <div class="legend-item"><div class="legend-dot" style="background:#6EE7B7"></div>Alfabe</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#818CF8"></div>Sayılar</div>
+          <div class="legend-item"><div class="legend-dot" style="background:#FB923C"></div>Renkler</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-pad">
+      <div class="sec-title"><h2>🎯 Haftalık Hedefler</h2></div>
+      <div class="goals-list">
+        <div class="goal-item">
+          <div class="goal-top">
+            <div class="goal-name">🔤 Alfabeyi tamamla</div>
+            <div class="goal-pct" style="color:#6EE7B7">72%</div>
+          </div>
+          <div class="goal-bar-bg"><div class="goal-bar" style="width:72%;background:linear-gradient(90deg,#6EE7B7,#3B82F6)"></div></div>
+          <div class="goal-sub">21 / 29 harf öğrenildi · Bu hafta 8 harf kaldı</div>
+        </div>
+        <div class="goal-item">
+          <div class="goal-top">
+            <div class="goal-name">⏱️ Günlük 20 dk hedefi</div>
+            <div class="goal-pct" style="color:#22C55E">5/7 gün</div>
+          </div>
+          <div class="goal-bar-bg"><div class="goal-bar" style="width:71%;background:linear-gradient(90deg,#22C55E,#6EE7B7)"></div></div>
+          <div class="goal-sub">Pazartesi ve Salı eksik</div>
+        </div>
+        <div class="goal-item">
+          <div class="goal-top">
+            <div class="goal-name">📝 Sınav başarısı %85</div>
+            <div class="goal-pct" style="color:#FBBF24">%80</div>
+          </div>
+          <div class="goal-bar-bg"><div class="goal-bar" style="width:80%;background:linear-gradient(90deg,#FBBF24,#FB923C)"></div></div>
+          <div class="goal-sub">Hedefe 5 puan kaldı · Yakın!</div>
+        </div>
+        <div class="goal-item">
+          <div class="goal-top">
+            <div class="goal-name">🐾 12 hayvanı öğren</div>
+            <div class="goal-pct" style="color:#F472B6">%83</div>
+          </div>
+          <div class="goal-bar-bg"><div class="goal-bar" style="width:83%;background:linear-gradient(90deg,#F472B6,#FB923C)"></div></div>
+          <div class="goal-sub">10 / 12 hayvan tamamlandı</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Ekran Süresi -->
+    <div class="section-pad" style="padding-bottom:20px">
+      <div class="sec-title"><h2>📱 Ekran Süresi Takibi</h2></div>
+      <div class="week-chart-wrap">
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;">
+          <div style="flex:1">
+            <div style="font-size:0.75rem;color:var(--muted);font-weight:700;">Bu hafta toplam</div>
+            <div style="font-size:1.8rem;font-weight:900;color:var(--accent);">2s 34dk</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:0.75rem;color:var(--muted);font-weight:700;">Günlük limit</div>
+            <div style="font-size:1.3rem;font-weight:800;color:#FBBF24;">30 dk</div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:0.75rem;font-weight:700;margin-bottom:4px;">
+              <span>Eğitici içerik</span><span style="color:#6EE7B7">78%</span>
+            </div>
+            <div class="prog-bar-bg"><div class="prog-bar" style="width:78%;background:#6EE7B7"></div></div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:0.75rem;font-weight:700;margin-bottom:4px;">
+              <span>Oyun / Eğlence</span><span style="color:#FBBF24">15%</span>
+            </div>
+            <div class="prog-bar-bg"><div class="prog-bar" style="width:15%;background:#FBBF24"></div></div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:0.75rem;font-weight:700;margin-bottom:4px;">
+              <span>Video izleme</span><span style="color:#F472B6">7%</span>
+            </div>
+            <div class="prog-bar-bg"><div class="prog-bar" style="width:7%;background:#F472B6"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div><!-- /tab-analiz -->
+
+  <!-- TAB: BİLDİRİMLER -->
+  <div class="tab-content" id="tab-notif">
+    <div class="section-pad" style="padding-top:20px;padding-bottom:20px">
+      <div class="sec-title"><h2>🔔 Bildirimler</h2></div>
+      <div class="notif-list">
+        <div class="notif-item unread green">
+          <span class="notif-icon-wrap">🏆</span>
+          <div class="notif-content">
+            <div class="notif-title">Ahmet yeni bir başarı kazandı!</div>
+            <div class="notif-body">Sayılar bölümünde %100 doğrulukla 10 soruyu yanıtladı. Bu haftaki en yüksek skoru!</div>
+            <div class="notif-time">Az önce</div>
+            <button class="notif-action" onclick="showToast('Başarı detayı açıldı! 🎉')">🎉 Tebrik mesajı gönder</button>
+          </div>
+        </div>
+        <div class="notif-item unread orange">
+          <span class="notif-icon-wrap">⚠️</span>
+          <div class="notif-content">
+            <div class="notif-title">Ekran süresi uyarısı</div>
+            <div class="notif-body">Ahmet bugün 28 dakika kullandı. Belirlediğin 30 dakika limitine yaklaşıyor.</div>
+            <div class="notif-time">12 dakika önce</div>
+            <button class="notif-action" onclick="showToast('Süre 10 dk uzatıldı')">+10 dk ekle</button>
+          </div>
+        </div>
+        <div class="notif-item unread purple">
+          <span class="notif-icon-wrap">💡</span>
+          <div class="notif-content">
+            <div class="notif-title">Öneri: Ğ harfini birlikte çalışın</div>
+            <div class="notif-body">Ahmet son 3 günde Ğ harfinde sürekli hata yapıyor. Bu akşam 5 dakika birlikte bakmanızı öneririz.</div>
+            <div class="notif-time">1 saat önce</div>
+            <button class="notif-action" onclick="showToast('Çalışma kartları hazırlanıyor...')">📚 Materyal hazırla</button>
+          </div>
+        </div>
+        <div class="notif-item">
+          <span class="notif-icon-wrap">📊</span>
+          <div class="notif-content">
+            <div class="notif-title">Günlük rapor WhatsApp'a gönderildi</div>
+            <div class="notif-body">Dün Ahmet 25 dakika çalıştı. 3 yeni harf öğrendi. Genel başarı %78.</div>
+            <div class="notif-time">Dün, 20:00</div>
+          </div>
+        </div>
+        <div class="notif-item">
+          <span class="notif-icon-wrap">🎯</span>
+          <div class="notif-content">
+            <div class="notif-title">Haftalık hedef tamamlandı!</div>
+            <div class="notif-body">Zeynep bu hafta belirlenmiş tüm hedefleri tamamladı. Harika bir hafta!</div>
+            <div class="notif-time">2 gün önce</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: AYARLAR -->
+  <div class="tab-content" id="tab-ayar">
+
+    <button class="wa-btn" onclick="showToast('📲 WhatsApp raporu test olarak gönderildi!')">
+      📲 WhatsApp Günlük Raporu Test Et
+    </button>
+
+    <div class="settings-section">
+      <div class="settings-title">Bildirim Ayarları</div>
+      <div class="setting-row" onclick="toggleSetting(this)">
+        <div class="setting-left">
+          <span class="setting-icon">🏆</span>
+          <div>
+            <div class="setting-name">Başarı bildirimleri</div>
+            <div class="setting-sub">Yeni başarı kazanıldığında bildir</div>
+          </div>
+        </div>
+        <div class="toggle on"></div>
+      </div>
+      <div class="setting-row" onclick="toggleSetting(this)">
+        <div class="setting-left">
+          <span class="setting-icon">⚠️</span>
+          <div>
+            <div class="setting-name">Zorluk uyarısı</div>
+            <div class="setting-sub">Hata sayısı artınca bildir</div>
+          </div>
+        </div>
+        <div class="toggle on"></div>
+      </div>
+      <div class="setting-row" onclick="toggleSetting(this)">
+        <div class="setting-left">
+          <span class="setting-icon">📱</span>
+          <div>
+            <div class="setting-name">Ekran süresi uyarısı</div>
+            <div class="setting-sub">Limite 5 dk kala bildir</div>
+          </div>
+        </div>
+        <div class="toggle on"></div>
+      </div>
+      <div class="setting-row" onclick="toggleSetting(this)">
+        <div class="setting-left">
+          <span class="setting-icon">💬</span>
+          <div>
+            <div class="setting-name">WhatsApp günlük özet</div>
+            <div class="setting-sub">Her akşam 20:00'de gönder</div>
+          </div>
+        </div>
+        <div class="toggle on"></div>
+      </div>
+
+      <div class="settings-title">Sınır Ayarları</div>
+      <div class="setting-row" onclick="showToast('Günlük süre: 30 dakika')">
+        <div class="setting-left">
+          <span class="setting-icon">⏱️</span>
+          <div>
+            <div class="setting-name">Günlük ekran süresi</div>
+            <div class="setting-sub">Şu an: 30 dakika</div>
+          </div>
+        </div>
+        <span class="setting-arrow">›</span>
+      </div>
+      <div class="setting-row" onclick="showToast('Çalışma saatleri: 16:00 - 19:00')">
+        <div class="setting-left">
+          <span class="setting-icon">🕐</span>
+          <div>
+            <div class="setting-name">İzin verilen saatler</div>
+            <div class="setting-sub">16:00 – 19:00 arası</div>
+          </div>
+        </div>
+        <span class="setting-arrow">›</span>
+      </div>
+
+      <div class="settings-title">Hesap</div>
+      <div class="setting-row" onclick="showToast('Profil düzenleniyor...')">
+        <div class="setting-left">
+          <span class="setting-icon">👤</span>
+          <div>
+            <div class="setting-name">Profil bilgileri</div>
+            <div class="setting-sub">Ayşe Hanım · aysekaya@gmail.com</div>
+          </div>
+        </div>
+        <span class="setting-arrow">›</span>
+      </div>
+      <div class="setting-row" onclick="showToast('Güvenlik ayarları...')">
+        <div class="setting-left">
+          <span class="setting-icon">🔒</span>
+          <div>
+            <div class="setting-name">Güvenlik & Gizlilik</div>
+            <div class="setting-sub">Şifre, 2FA ayarları</div>
+          </div>
+        </div>
+        <span class="setting-arrow">›</span>
+      </div>
+    </div>
+
+    <div style="text-align:center;padding:20px;color:var(--muted);font-size:0.75rem;font-weight:600;">
+      ParentEye v1.0 · Tüm hakları saklıdır
+    </div>
+  </div>
+
+</div><!-- /app -->
+
+<!-- ── BOTTOM NAV ── -->
+<div class="bottom-nav" id="bottomNav" style="display:none">
+  <button class="nav-btn active" onclick="switchTab('panel', this)">
+    <span class="nav-icon">🏠</span>
+    <span class="nav-label">Panel</span>
+  </button>
+  <button class="nav-btn" onclick="switchTab('analiz', this)">
+    <span class="nav-icon">📊</span>
+    <span class="nav-label">Analiz</span>
+  </button>
+  <button class="nav-btn" onclick="switchTab('notif', this)">
+    <span class="nav-icon">🔔</span>
+    <span class="nav-label">Bildirim</span>
+  </button>
+  <button class="nav-btn" onclick="switchTab('ayar', this)">
+    <span class="nav-icon">⚙️</span>
+    <span class="nav-label">Ayarlar</span>
+  </button>
+</div>
+
+<!-- ── MODALS ── -->
+<!-- Detaylı Rapor Modal -->
+<div class="modal-overlay" id="reportModal" onclick="closeModal(event,'reportModal')">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+    <button class="modal-close" onclick="document.getElementById('reportModal').classList.remove('open')">✕</button>
+    <div class="modal-title">📋 Ahmet'in Detaylı Raporu</div>
+    <div class="report-row">
+      <span class="report-icon">⏱️</span>
+      <div class="report-info">
+        <div class="report-label">Bugünkü toplam süre</div>
+        <div class="report-val">23 dakika aktif çalışma</div>
+      </div>
+      <span class="report-badge rb-green">Hedefte</span>
+    </div>
+    <div class="report-row">
+      <span class="report-icon">✅</span>
+      <div class="report-info">
+        <div class="report-label">Doğru cevap oranı</div>
+        <div class="report-val">48 / 60 soru doğru (%80)</div>
+      </div>
+      <span class="report-badge rb-green">İyi</span>
+    </div>
+    <div class="report-row">
+      <span class="report-icon">🔥</span>
+      <div class="report-info">
+        <div class="report-label">Günlük seri</div>
+        <div class="report-val">7 gün üst üste çalıştı!</div>
+      </div>
+      <span class="report-badge rb-orange">Harika!</span>
+    </div>
+    <div class="report-row">
+      <span class="report-icon">⚠️</span>
+      <div class="report-info">
+        <div class="report-label">En çok zorlanan konu</div>
+        <div class="report-val">Ğ, Ü, Ş harfleri (8 hata)</div>
+      </div>
+      <span class="report-badge rb-orange">Dikkat</span>
+    </div>
+    <div class="report-row">
+      <span class="report-icon">🌟</span>
+      <div class="report-info">
+        <div class="report-label">En başarılı konu</div>
+        <div class="report-val">Hayvanlar (%91 başarı)</div>
+      </div>
+      <span class="report-badge rb-purple">Mükemmel</span>
+    </div>
+    <div class="report-row">
+      <span class="report-icon">⭐</span>
+      <div class="report-info">
+        <div class="report-label">Kazanılan yıldızlar</div>
+        <div class="report-val">Bugün 47 yıldız · Toplam 312</div>
+      </div>
+      <span class="report-badge rb-green">↑ Artıyor</span>
+    </div>
+  </div>
+</div>
+
+<!-- Bildirim Modal -->
+<div class="modal-overlay" id="notifModal" onclick="closeModal(event,'notifModal')">
+  <div class="modal-box">
+    <div class="modal-handle"></div>
+    <button class="modal-close" onclick="document.getElementById('notifModal').classList.remove('open')">✕</button>
+    <div class="modal-title">🔔 Son Bildirimler</div>
+    <div class="report-row">
+      <span class="report-icon">🏆</span>
+      <div class="report-info">
+        <div class="report-label">Ahmet yeni başarı kazandı</div>
+        <div class="report-val">Sayılar bölümünde %100 başarı · Az önce</div>
+      </div>
+    </div>
+    <div class="report-row">
+      <span class="report-icon">⚠️</span>
+      <div class="report-info">
+        <div class="report-label">Ekran süresi uyarısı</div>
+        <div class="report-val">30 dk limitine yaklaşıyor · 12 dk önce</div>
+      </div>
+    </div>
+    <div class="report-row">
+      <span class="report-icon">💡</span>
+      <div class="report-info">
+        <div class="report-label">Öneri: Ğ harfini çalışın</div>
+        <div class="report-val">3 gündür hata yapıyor · 1 saat önce</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* ═══════════ SPLASH ═══════════ */
+function startApp() {
+  document.getElementById('splash').classList.add('out');
+  setTimeout(() => {
+    document.getElementById('splash').style.display = 'none';
+    document.getElementById('app').classList.add('show');
+    document.getElementById('bottomNav').style.display = 'flex';
+    buildWeekChart();
+    animateBars();
+  }, 500);
+}
+
+/* ═══════════ TABS ═══════════ */
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  if (btn) btn.classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ═══════════ CHILD SELECT ═══════════ */
+function selectChild(el, name) {
+  document.querySelectorAll('.child-pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  showToast(name + ' seçildi 👀');
+}
+
+/* ═══════════ CHART ═══════════ */
+const WEEK_DATA = [
+  { day:'Pzt', a:60, s:80, r:40 },
+  { day:'Sal', a:0,  s:0,  r:0  },
+  { day:'Çar', a:75, s:90, r:65 },
+  { day:'Per', a:85, s:70, r:55 },
+  { day:'Cum', a:90, s:85, r:70 },
+  { day:'Cmt', a:70, s:60, r:80 },
+  { day:'Paz', a:80, s:95, r:60 },
+];
+
+function buildWeekChart() {
+  const bars = document.getElementById('weekBars');
+  bars.innerHTML = '';
+  WEEK_DATA.forEach(d => {
+    const col = document.createElement('div');
+    col.className = 'week-bar-col';
+    col.innerHTML = `
+      <div class="week-bar-bg" style="display:flex;flex-direction:column;justify-content:flex-end;gap:2px;padding:2px;border-radius:6px;">
+        <div class="week-bar-fill" data-h="${d.a}" style="height:0%;background:#6EE7B7;border-radius:4px 4px 0 0;opacity:0.9"></div>
+        <div class="week-bar-fill" data-h="${d.s}" style="height:0%;background:#818CF8;border-radius:0;opacity:0.9"></div>
+        <div class="week-bar-fill" data-h="${d.r}" style="height:0%;background:#FB923C;border-radius:0 0 4px 4px;opacity:0.9"></div>
+      </div>
+      <div class="week-bar-day">${d.day}</div>`;
+    bars.appendChild(col);
+  });
+}
+
+function animateBars() {
+  setTimeout(() => {
+    document.querySelectorAll('.week-bar-fill').forEach(b => {
+      const h = b.dataset.h;
+      b.style.height = (h / 3) + 'px';
+    });
+    document.querySelectorAll('.prog-bar').forEach(b => {
+      const w = b.style.width;
+      b.style.width = '0%';
+      setTimeout(() => b.style.width = w, 50);
+    });
+    document.querySelectorAll('.goal-bar').forEach(b => {
+      const w = b.style.width;
+      b.style.width = '0%';
+      setTimeout(() => b.style.width = w, 100);
+    });
+  }, 300);
+}
+
+/* ═══════════ MODAL ═══════════ */
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+}
+function closeModal(e, id) {
+  if (e.target === document.getElementById(id)) {
+    document.getElementById(id).classList.remove('open');
+  }
+}
+
+/* ═══════════ TOGGLE ═══════════ */
+function toggleSetting(row) {
+  const t = row.querySelector('.toggle');
+  if (!t) return;
+  t.classList.toggle('on');
+  showToast(t.classList.contains('on') ? '✅ Açıldı' : '🔕 Kapatıldı');
+}
+
+/* ═══════════ TOAST ═══════════ */
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+// Trigger bar animation when analiz tab is opened
+const origSwitch = switchTab;
+window.switchTab = function(name, btn) {
+  origSwitch(name, btn);
+  if (name === 'analiz') {
+    buildWeekChart();
+    animateBars();
+  }
+};
+</script>
+</body>
+</html>
